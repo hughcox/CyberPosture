@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CyberPosture">
+<meta name="theme-color" content="#0f172a">
+<title>CyberPosture</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;font-family:system-ui,-apple-system,sans-serif;background:#f0f4f8;color:#0f172a}
+#outer{height:100%;height:100dvh;display:flex;flex-direction:column;max-width:600px;margin:0 auto}
+#screen{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
+#nav{display:flex;background:#0f172a;border-top:1px solid rgba(255,255,255,.08);flex-shrink:0;padding-bottom:env(safe-area-inset-bottom)}
+#modalroot{position:fixed;inset:0;pointer-events:none;z-index:100}
+#modalroot:not(:empty){pointer-events:all}
+.nb{flex:1;padding:10px 4px 12px;display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:none;cursor:pointer;color:#475569;font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-family:inherit}
+.nb.on{color:#34d399}
+.nb-ic{font-size:20px;line-height:1}
+.hdr{background:#0f172a;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top));display:flex;align-items:center;gap:12px;flex-shrink:0}
+.logo-dot{width:22px;height:22px;border-radius:50%;background:#34d399;box-shadow:0 0 12px #34d399;flex-shrink:0}
+.back-btn{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.card{background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:16px}
+input[type=text]{width:100%;background:#f8fafc;border:2px solid #e2e8f0;border-radius:10px;padding:13px 14px;font-size:16px;font-weight:600;color:#0f172a;outline:none;font-family:inherit;-webkit-appearance:none}
+input[type=text]:focus{border-color:#059669}
+input[type=text]::placeholder{color:#94a3b8;font-weight:400}
+.btn-go{width:100%;margin-top:10px;padding:15px;background:#059669;border:none;border-radius:12px;color:#fff;font-weight:800;font-size:15px;cursor:pointer;font-family:inherit}
+.btn-go:active{opacity:.85}
+.btn-go:disabled{background:#94a3b8;cursor:default}
+.pill{background:#fff;border:1.5px solid #e2e8f0;border-radius:20px;padding:8px 14px;font-size:12px;font-weight:600;color:#334155;cursor:pointer;font-family:inherit}
+.pill:active{border-color:#059669;color:#059669;background:#f0fdf4}
+.dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex-shrink:0;border:2px solid}
+.dp{background:#d1fae5;border-color:#6ee7b7;color:#059669}
+.dw{background:#fef3c7;border-color:#fcd34d;color:#d97706}
+.df{background:#fee2e2;border-color:#fca5a5;color:#dc2626}
+.ds{background:#f1f5f9;border-color:#cbd5e1;color:#94a3b8}
+.chkrow{display:flex;align-items:flex-start;gap:12px;padding:13px 14px;border-bottom:1px solid #f1f5f9;cursor:pointer;-webkit-user-select:none}
+.chkrow:last-child{border-bottom:none}
+.chkrow:active{background:#f8fafc}
+.nstag{font-size:9px;font-weight:700;color:#94a3b8;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:1px 5px}
+.prog-track{height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;margin-top:8px}
+.prog-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#059669,#34d399);transition:width .4s}
+.ring-wrap{position:relative;flex-shrink:0}
+.ring-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;z-index:100}
+.modal-box{background:#fff;border-radius:18px 18px 0 0;width:100%;padding:18px 18px;padding-bottom:max(24px,env(safe-area-inset-bottom));max-height:85vh;overflow-y:auto}
+.modal-handle{width:40px;height:4px;background:#e2e8f0;border-radius:2px;margin:0 auto 16px}
+.hist-row{background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:14px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;gap:10px}
+.hist-row:active{border-color:#059669}
+.slabel{font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
+.live-badge{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;color:#059669;background:rgba(5,150,105,.08);border:1px solid rgba(5,150,105,.2);border-radius:4px;padding:2px 7px}
+.live-dot{width:5px;height:5px;border-radius:50%;background:#059669;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.prio-box{background:#fff;border:2px solid #fca5a5;border-radius:14px;padding:14px}
+.prio-num{width:22px;height:22px;border-radius:50%;background:#fee2e2;border:2px solid #fca5a5;color:#dc2626;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.shimmer{background:linear-gradient(90deg,#e2e8f0 0%,#f8fafc 50%,#e2e8f0 100%);background-size:200% 100%;animation:sh 1.3s infinite;border-radius:3px}
+</style>
+</head>
+<body>
+<div id="outer">
+  <div id="screen"></div>
+  <div id="nav"></div>
+  <div id="modalroot"></div>
+</div>
+<script>
+var CHECKS=[
+  {id:'ssl',   label:'SSL/TLS Certificate',  cat:'Encryption',    w:15},
+  {id:'hsts',  label:'HSTS Enforcement',     cat:'Encryption',    w:8},
+  {id:'hdrs',  label:'HTTP Security Headers',cat:'Web Security',  w:12},
+  {id:'ckys',  label:'Cookie Security',      cat:'Web Security',  w:5},
+  {id:'spf',   label:'SPF Record',           cat:'Email',         w:10},
+  {id:'dkim',  label:'DKIM Signing',         cat:'Email',         w:8},
+  {id:'dmarc', label:'DMARC Policy',         cat:'Email',         w:10},
+  {id:'dns',   label:'DNSSEC',               cat:'Infrastructure',w:10},
+  {id:'ports', label:'Exposed Services',     cat:'Infrastructure',w:10},
+  {id:'breach',label:'Breach Indicators',    cat:'Threat Intel',  w:12},
+  {id:'cve',   label:'Known CVEs',           cat:'Threat Intel',  w:10},
+];
+var GRADES=[
+  {min:85,g:'A',lbl:'Excellent',    col:'#059669'},
+  {min:70,g:'B',lbl:'Good',         col:'#16a34a'},
+  {min:50,g:'C',lbl:'Moderate Risk',col:'#d97706'},
+  {min:30,g:'D',lbl:'High Risk',    col:'#ea580c'},
+  {min:0, g:'F',lbl:'Critical Risk',col:'#dc2626'},
+];
+
+var ST={screen:‘home’,input:’’,domain:’’,results:{},scanning:false,progress:0,msg:’’,history:[],modal:null};
+function set(p){Object.assign(ST,p);render();}
+function esc(s){return s?String(s).replace(/&/g,’&’).replace(/</g,’<’).replace(/>/g,’>’).replace(/”/g,’"’):’’;}
+function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
+function getGrade(s){if(s===null)return{g:’?’,lbl:‘No data’,col:’#94a3b8’};for(var i=0;i<GRADES.length;i++)if(s>=GRADES[i].min)return GRADES[i];return GRADES[GRADES.length-1];}
+function calcScore(res){
+var t=0,m=0;
+CHECKS.forEach(function(c){var r=res[c.id];if(!r||r.s===‘skip’)return;m+=c.w;if(r.s===‘pass’)t+=c.w;else if(r.s===‘warn’)t+=c.w*0.5;});
+return m===0?null:Math.round((t/m)*100);
+}
+function dotEl(s){
+var cls={pass:‘dp’,warn:‘dw’,fail:‘df’,skip:‘ds’};
+var ic={pass:‘✓’,warn:‘⚠’,fail:‘✕’,skip:’—’};
+return ‘<div class="dot '+(cls[s]||'ds')+'">’+(ic[s]||’—’)+’</div>’;
+}
+function toDom(s){
+var t=s.toLowerCase().trim().replace(/^https?:///,’’).split(’/’)[0];
+if(t.includes(’.’))return t;
+var m={microsoft:‘microsoft.com’,google:‘google.com’,amazon:‘amazon.com’,apple:‘apple.com’,
+meta:‘meta.com’,facebook:‘facebook.com’,shell:‘shell.com’,hsbc:‘hsbc.com’,
+nca:‘nca.gov.uk’,bbc:‘bbc.co.uk’,tesla:‘tesla.com’,‘british airways’:‘ba.com’,
+ba:‘ba.com’,lloyds:‘lloydsbank.com’,barclays:‘barclays.com’,bt:‘bt.com’,
+bp:‘bp.com’,vodafone:‘vodafone.com’,netflix:‘netflix.com’,tesco:‘tesco.com’,
+natwest:‘natwestgroup.com’,nvidia:‘nvidia.com’};
+return m[t]||(t+’.com’);
+}
+
+// ── Safe fetch — NO AbortController (Safari iOS compat) ───────────────────
+// Returns response or throws. Uses Promise.race with a timeout promise.
+function safeFetch(url, opts) {
+var timeout = (opts && opts.timeout) || 10000;
+var fetchOpts = {};
+if (opts && opts.headers) fetchOpts.headers = opts.headers;
+// No signal — avoids “object cannot be cloned” Safari bug
+var fetchP = fetch(url, fetchOpts);
+var timeoutP = new Promise(function(_, rej) {
+setTimeout(function() { rej(new Error(‘timeout’)); }, timeout);
+});
+return Promise.race([fetchP, timeoutP]);
+}
+
+// Try a URL with optional CORS proxies
+async function tryFetch(url, opts) {
+var proxies = [
+url,
+‘https://corsproxy.io/?’ + encodeURIComponent(url),
+‘https://api.allorigins.win/raw?url=’ + encodeURIComponent(url)
+];
+var lastErr = ‘all failed’;
+for (var i = 0; i < proxies.length; i++) {
+try {
+var r = await safeFetch(proxies[i], opts);
+if (r && r.ok) return r;
+lastErr = ’HTTP ’ + (r ? r.status : ‘?’);
+} catch(e) { lastErr = e.message; }
+}
+throw new Error(lastErr);
+}
+
+// DNS over HTTPS — tries Google then Cloudflare, direct only (both have open CORS)
+async function dnsQ(name, type) {
+var urls = [
+‘https://dns.google/resolve?name=’ + encodeURIComponent(name) + ‘&type=’ + type,
+‘https://cloudflare-dns.com/dns-query?name=’ + encodeURIComponent(name) + ‘&type=’ + type
+];
+for (var i = 0; i < urls.length; i++) {
+try {
+var r = await safeFetch(urls[i], {timeout: 8000, headers: i===1 ? {‘Accept’:‘application/dns-json’} : {}});
+if (r && r.ok) {
+var j = await r.json();
+if (j && (j.Answer !== undefined || j.Status !== undefined)) return j;
+}
+} catch(e) {}
+}
+return null;
+}
+
+// ── Check functions ────────────────────────────────────────────────────────
+async function chkSSL(d) {
+try {
+var r = await tryFetch(‘https://api.ssllabs.com/api/v3/analyze?host=’+encodeURIComponent(d)+’&fromCache=on&maxAge=72’, {timeout:15000});
+var j = await r.json();
+if (j.status === ‘ERROR’) return {s:‘fail’, d:’SSL error: ’+(j.statusMessage||‘unknown’)};
+if (j.status !== ‘READY’) return {s:‘warn’, d:‘SSL Labs queued — re-scan in ~60s (first-time analysis takes longer)’};
+var gs = (j.endpoints||[]).map(function(e){return e.grade;}).filter(Boolean);
+if (!gs.length) return {s:‘fail’, d:‘No SSL endpoints found’};
+var order = [‘A+’,‘A’,‘A-’,‘B’,‘C’,‘D’,‘E’,‘F’,‘T’];
+var worst = gs.sort(function(a,b){return order.indexOf(b)-order.indexOf(a);})[0]||‘T’;
+if ([‘A+’,‘A’].includes(worst)) return {s:‘pass’, d:‘SSL grade ‘+worst+’ — strong TLS, valid certificate’};
+if ([‘A-’,‘B’].includes(worst)) return {s:‘warn’, d:‘SSL grade ‘+worst+’ — minor weaknesses’};
+return {s:‘fail’, d:‘SSL grade ‘+worst+’ — weak or expired certificate’};
+} catch(e) { return {s:‘skip’, d:’SSL Labs unreachable: ’+e.message}; }
+}
+
+async function chkHSTS(d) {
+try {
+var r = await tryFetch(‘https://hstspreload.org/api/v2/status?domain=’+encodeURIComponent(d), {timeout:8000});
+var j = await r.json();
+var s = j.status||’’;
+if (s===‘preloaded’) return {s:‘pass’, d:d+’ is on the HSTS preload list — HTTPS enforced by all browsers’};
+if (s===‘pending’)   return {s:‘warn’, d:d+’ HSTS preload pending — not yet in all browser builds’};
+return {s:‘fail’, d:d+’ not on HSTS preload list — SSL stripping possible on first visit’};
+} catch(e) { return {s:‘skip’, d:’HSTS check failed: ’+e.message}; }
+}
+
+async function chkHdrs(d) {
+try {
+var r = await tryFetch(‘https://observatory-api.mdn.mozilla.net/api/v2/analyze?host=’+encodeURIComponent(d), {timeout:15000});
+var j = await r.json();
+var g = j.grade||(j.scan&&j.scan.grade)||’’;
+var sc = j.score!=null ? j.score : (j.scan&&j.scan.score!=null ? j.scan.score : ‘?’);
+if (!g) throw new Error(‘no grade returned’);
+if ([‘A+’,‘A’].includes(g)) return {s:‘pass’, d:‘Security headers grade ‘+g+’ (’+sc+’/100)’};
+if (g===‘B’) return {s:‘warn’, d:‘Security headers grade ‘+g+’ (’+sc+’/100) — some headers missing’};
+return {s:‘fail’, d:‘Security headers grade ‘+g+’ (’+sc+’/100) — critical headers absent’};
+} catch(e) { return {s:‘skip’, d:’Header scan unavailable: ’+e.message}; }
+}
+
+async function chkCkys(d) {
+try {
+var q = await dnsQ(d, ‘A’);
+if (!q||!q.Answer||!q.Answer[0]) throw new Error(‘no A record’);
+var ip = q.Answer[0].data;
+var r = await tryFetch(‘https://internetdb.shodan.io/’+ip, {timeout:8000});
+var j = await r.json();
+var tags = (j.tags||[]).map(function(t){return t.toLowerCase();});
+var waf = tags.filter(function(t){return[‘cdn’,‘waf’,‘cloudflare’,‘akamai’,‘fastly’].some(function(w){return t.includes(w);});});
+if (waf.length) return {s:‘pass’, d:‘Uses ‘+waf.join(’, ‘)+’ — cookies secured via CDN/WAF layer’};
+return {s:‘warn’, d:‘No CDN/WAF detected — verify Secure, HttpOnly, SameSite cookie flags manually’};
+} catch(e) { return {s:‘skip’, d:’Cookie check failed: ’+e.message}; }
+}
+
+async function chkSPF(d) {
+try {
+var q = await dnsQ(d, ‘TXT’);
+if (!q) return {s:‘skip’, d:‘DNS lookup failed’};
+var txt = (q.Answer||[]).map(function(a){return a.data;}).join(’\n’);
+if (!txt.includes(‘v=spf1’)) return {s:‘fail’, d:‘No SPF record — anyone can spoof email from ‘+d};
+if (txt.includes(’-all’)) return {s:‘pass’, d:‘SPF -all — strict policy, spoofed senders rejected’};
+if (txt.includes(‘~all’)) return {s:‘warn’, d:‘SPF ~all softfail — upgrade to -all recommended’};
+return {s:‘warn’, d:‘SPF ?all neutral — provides no real protection’};
+} catch(e) { return {s:‘skip’, d:’SPF check failed: ’+e.message}; }
+}
+
+async function chkDKIM(d) {
+var sels = [‘google’,‘selector1’,‘selector2’,‘default’,‘k1’,‘mail’,‘dkim’,‘s1’,‘s2’,‘smtp’,‘mimecast’,‘proofpoint’];
+for (var i = 0; i < sels.length; i++) {
+try {
+var q = await dnsQ(sels[i]+’._domainkey.’+d, ‘TXT’);
+if (q&&q.Answer&&q.Answer.length>0) {
+var txt = q.Answer.map(function(a){return a.data;}).join(’ ’);
+if (txt.includes(‘p=’)) {
+var strong = /p=[A-Za-z0-9+/]{200,}/.test(txt);
+return strong ? {s:‘pass’, d:‘DKIM active (selector: ‘+sels[i]+’) — strong 2048-bit key’}
+: {s:‘warn’, d:‘DKIM active (selector: ‘+sels[i]+’) — verify key is 2048-bit’};
+}
+}
+} catch(e2) {}
+}
+return {s:‘fail’, d:’No DKIM record found on ‘+sels.length+’ common selectors for ’+d};
+}
+
+async function chkDMARC(d) {
+try {
+var q = await dnsQ(’_dmarc.’+d, ‘TXT’);
+if (!q) return {s:‘skip’, d:‘DNS lookup failed’};
+var txt = (q.Answer||[]).map(function(a){return a.data;}).join(’\n’);
+if (!txt.includes(‘v=DMARC1’)) return {s:‘fail’, d:‘No DMARC record — email spoofing from ‘+d+’ is trivially easy’};
+if (txt.includes(‘p=reject’))     return {s:‘pass’, d:‘DMARC p=reject — spoofed mail blocked at recipient’};
+if (txt.includes(‘p=quarantine’)) return {s:‘warn’, d:‘DMARC p=quarantine — spoofed mail goes to spam, not rejected’};
+return {s:‘warn’, d:‘DMARC p=none — monitoring only, zero enforcement’};
+} catch(e) { return {s:‘skip’, d:’DMARC check failed: ’+e.message}; }
+}
+
+async function chkDNSSEC(d) {
+try {
+var q = await dnsQ(d, ‘DS’);
+if (!q) return {s:‘skip’, d:‘DNS lookup failed’};
+if (q.Answer&&q.Answer.length>0) return {s:‘pass’, d:‘DNSSEC active — DS records present, chain of trust verified’};
+var q2 = await dnsQ(d, ‘DNSKEY’);
+if (q2&&q2.Answer&&q2.Answer.length>0) return {s:‘warn’, d:‘DNSKEY found but no DS record — chain may be incomplete’};
+return {s:‘fail’, d:‘No DNSSEC — DNS hijacking and cache poisoning possible’};
+} catch(e) { return {s:‘skip’, d:’DNSSEC check failed: ’+e.message}; }
+}
+
+async function chkPorts(d) {
+try {
+var q = await dnsQ(d, ‘A’);
+if (!q||!q.Answer||!q.Answer[0]) return {s:‘skip’, d:‘Cannot resolve ‘+d+’ to IP’};
+var ip = q.Answer[0].data;
+var r = await tryFetch(‘https://internetdb.shodan.io/’+ip, {timeout:10000});
+var j = await r.json();
+var ports = j.ports||[];
+var danger = ports.filter(function(p){return[21,22,23,3306,5432,3389,5900,27017,6379,9200,8080,445].includes(p);});
+if (!ports.length) return {s:‘pass’, d:‘No open ports indexed by Shodan for ‘+d+’ (’+ip+’)’};
+if (danger.length) return {s:‘fail’, d:‘Sensitive ports exposed (’+ip+’): ‘+danger.join(’, ‘)};
+var ns = ports.filter(function(p){return![80,443].includes(p);});
+if (ns.length) return {s:‘warn’, d:‘Non-standard ports open (’+ip+’): ‘+ns.join(’, ‘)};
+return {s:‘pass’, d:‘Only standard ports (’+ports.join(’, ‘)+’) exposed’};
+} catch(e) { return {s:‘skip’, d:’Port check failed: ’+e.message}; }
+}
+
+async function chkBreach(d) {
+try {
+var r = await tryFetch(‘https://haveibeenpwned.com/api/v3/breacheddomain/’+encodeURIComponent(d), {timeout:8000, headers:{‘User-Agent’:‘CyberPosture’}});
+if (r.status===404) return {s:‘pass’, d:‘No breaches found for ‘+d+’ in HaveIBeenPwned’};
+var j = await r.json();
+var list = Array.isArray(j)?j:Object.keys(j);
+return list.length ? {s:‘fail’, d:list.length+’ breach(es): ‘+list.slice(0,3).join(’, ‘)}
+: {s:‘pass’, d:‘No breaches for ‘+d+’ in HIBP’};
+} catch(e) {
+try {
+var q = await dnsQ(d,‘A’);
+if (q&&q.Answer&&q.Answer[0]) {
+var ip = q.Answer[0].data;
+var sr = await tryFetch(‘https://internetdb.shodan.io/’+ip, {timeout:8000});
+var sd = await sr.json();
+var bad = (sd.tags||[]).filter(function(t){return[‘compromised’,‘malware’,‘spam’,‘botnet’].some(function(b){return t.toLowerCase().includes(b);});});
+if (bad.length) return {s:‘fail’, d:d+’ flagged by Shodan: ‘+bad.join(’, ’)};
+}
+} catch(e2) {}
+return {s:‘skip’, d:‘Breach check requires HIBP API key — no Shodan flags found’};
+}
+}
+
+async function chkCVE(d) {
+try {
+var q = await dnsQ(d,‘A’);
+if (!q||!q.Answer||!q.Answer[0]) return {s:‘skip’, d:‘Cannot resolve IP for CVE check’};
+var ip = q.Answer[0].data;
+var r = await tryFetch(‘https://internetdb.shodan.io/’+ip, {timeout:10000});
+var j = await r.json();
+var vulns = j.vulns||[];
+if (!vulns.length) return {s:‘pass’, d:‘No known CVEs in Shodan for ‘+d+’ (’+ip+’)’};
+var crit=[], high=[];
+for (var i=0; i<Math.min(vulns.length,5); i++) {
+try {
+var nv = await tryFetch(‘https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=’+encodeURIComponent(vulns[i]), {timeout:6000});
+var nd = await nv.json();
+var m = nd.vulnerabilities&&nd.vulnerabilities[0]&&nd.vulnerabilities[0].cve&&nd.vulnerabilities[0].cve.metrics;
+var sc2 = (m&&((m.cvssMetricV31&&m.cvssMetricV31[0].cvssData.baseScore)||(m.cvssMetricV30&&m.cvssMetricV30[0].cvssData.baseScore)||(m.cvssMetricV2&&m.cvssMetricV2[0].cvssData.baseScore)))||0;
+if (sc2>=9) crit.push(vulns[i]); else if (sc2>=7) high.push(vulns[i]);
+await sleep(600);
+} catch(e2) {}
+}
+if (crit.length) return {s:‘fail’, d:vulns.length+’ CVE(s) — ‘+crit.length+’ critical: ‘+crit.join(’, ‘)};
+if (high.length||vulns.length>3) return {s:‘warn’, d:vulns.length+’ CVE(s) — ‘+high.length+’ high severity’};
+return {s:‘warn’, d:vulns.length+’ lower-severity CVE(s) detected’};
+} catch(e) { return {s:‘skip’, d:’CVE check failed: ’+e.message}; }
+}
+
+var CFNS=[
+{id:‘ssl’,   fn:chkSSL,    msg:‘Querying SSL Labs…’},
+{id:‘hsts’,  fn:chkHSTS,   msg:‘Checking HSTS preload…’},
+{id:‘hdrs’,  fn:chkHdrs,   msg:‘Mozilla Observatory scan…’},
+{id:‘ckys’,  fn:chkCkys,   msg:‘Checking cookie indicators…’},
+{id:‘spf’,   fn:chkSPF,    msg:‘Querying SPF record…’},
+{id:‘dkim’,  fn:chkDKIM,   msg:‘Checking DKIM selectors…’},
+{id:‘dmarc’, fn:chkDMARC,  msg:‘Querying DMARC record…’},
+{id:‘dns’,   fn:chkDNSSEC, msg:‘Checking DNSSEC…’},
+{id:‘ports’, fn:chkPorts,  msg:‘Querying Shodan InternetDB…’},
+{id:‘breach’,fn:chkBreach, msg:‘Checking breach indicators…’},
+{id:‘cve’,   fn:chkCVE,    msg:‘Querying NVD for CVEs…’},
+];
+
+async function runScan(domain) {
+var dom = domain.toLowerCase().trim().replace(/^https?:///,’’).split(’/’)[0];
+set({screen:‘scan’,domain:dom,results:{},scanning:true,progress:0,msg:‘Starting scan…’,modal:null});
+var res = {};
+for (var i=0; i<CFNS.length; i++) {
+var c = CFNS[i];
+set({msg:c.msg, progress:Math.round((i/CFNS.length)*100)});
+try { res[c.id] = await c.fn(dom); } catch(e) { res[c.id] = {s:‘skip’, d:’Error: ‘+e.message}; }
+set({results:Object.assign({},res)});
+}
+var sc = calcScore(res), g = getGrade(sc);
+var ts = new Date().toLocaleTimeString([],{hour:‘2-digit’,minute:‘2-digit’})+’ ’+new Date().toLocaleDateString([],{day:‘numeric’,month:‘short’});
+var entry = {id:Date.now(),domain:dom,score:sc,grade:g.g,gradeCol:g.col,gradeLbl:g.lbl,results:res,ts:ts};
+var hist = [entry].concat(ST.history.filter(function(h){return h.domain!==dom;})).slice(0,50);
+set({scanning:false,progress:100,msg:‘Complete’,results:res,history:hist});
+}
+
+// ── Render ─────────────────────────────────────────────────────────────────
+function renderNav() {
+var s = ST.screen;
+return [{id:‘home’,ic:‘⌖’,lbl:‘SCAN’},{id:‘scan’,ic:‘◉’,lbl:‘RESULTS’},{id:‘history’,ic:‘☰’,lbl:‘HISTORY’}]
+.map(function(t) {
+var on = (s===t.id) ? ‘on’ : ‘’;
+var fn = t.id===‘home’?‘goHome()’:t.id===‘history’?‘goHist()’:‘goScan()’;
+return ‘<button class="nb '+on+'" onclick="'+fn+'"><span class="nb-ic">’+t.ic+’</span>’+t.lbl+’</button>’;
+}).join(’’);
+}
+
+function renderHome() {
+var quick = [‘Shell’,‘HSBC’,‘Barclays’,‘Google’,‘Microsoft’,‘NCA’,‘BBC’,‘Tesla’,‘BA’,‘Netflix’,‘Amazon’,‘Nvidia’];
+return ‘<div class="hdr">’+
+‘<div class="logo-dot"></div>’+
+‘<div><div style="font-size:12px;font-weight:800;letter-spacing:.15em;color:#34d399">CYBERPOSTURE</div>’+
+‘<div style="font-size:9px;color:#64748b;letter-spacing:.08em">LIVE OSINT SCANNER</div></div>’+
+‘<span class="live-badge" style="margin-left:auto"><span class="live-dot"></span>LIVE DATA</span>’+
+‘</div>’+
+‘<div style="padding:14px">’+
+‘<div class="card" style="margin-bottom:14px">’+
+‘<div class="slabel">Company or Domain</div>’+
+‘<input type="text" id="srch" value="'+esc(ST.input)+'" placeholder="shell.com · HSBC · google.com…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" oninput="ST.input=this.value;updateBtn()" onkeydown="if(event.key===\'Enter\'&&ST.input.trim())doScan()">’+
+‘<button class=“btn-go” id=“gobtn” onclick=“doScan()” ‘+(ST.input.trim()?’’:‘disabled’)+’>▶  Run Live Assessment</button>’+
+‘</div>’+
+‘<div class="slabel">Quick Scans</div>’+
+‘<div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px">’+
+quick.map(function(q){return ‘<button class="pill" onclick="quickScan(\''+q+'\')">’+q+’</button>’;}).join(’’)+
+‘</div>’+
+‘<div style="padding:10px 12px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;font-size:9px;color:#94a3b8;line-height:1.9">’+
+‘SOURCES: SSL Labs · HSTS Preload · Mozilla Observatory · Google DNS · Shodan · NVD · HaveIBeenPwned’+
+‘</div>’+
+‘</div>’;
+}
+
+function renderScan() {
+var res=ST.results, dom=ST.domain, scanning=ST.scanning;
+var sc=calcScore(res), g=getGrade(sc);
+var pc=CHECKS.filter(function(c){return res[c.id]&&res[c.id].s===‘pass’;}).length;
+var wc=CHECKS.filter(function(c){return res[c.id]&&res[c.id].s===‘warn’;}).length;
+var fc=CHECKS.filter(function(c){return res[c.id]&&res[c.id].s===‘fail’;}).length;
+var skc=CHECKS.filter(function(c){return !res[c.id]||res[c.id].s===‘skip’;}).length;
+var done=CHECKS.filter(function(c){return !!res[c.id];}).length;
+
+var topCard = ‘’;
+if (scanning) {
+topCard = ‘<div class="card" style="margin-bottom:12px">’+
+‘<div style="display:flex;justify-content:space-between;margin-bottom:8px">’+
+‘<div style="font-size:11px;font-weight:700;color:#334155">’+esc(ST.msg)+’</div>’+
+‘<div style="font-size:11px;color:#94a3b8">’+done+’/’+CHECKS.length+’</div>’+
+‘</div>’+
+‘<div class="prog-track"><div class="prog-fill" style="width:'+ST.progress+'%"></div></div>’+
+‘</div>’;
+} else if (sc !== null) {
+var off = 226-(sc/100)*226;
+topCard = ‘<div class="card" style="display:flex;align-items:center;gap:16px;margin-bottom:12px">’+
+‘<div class="ring-wrap">’+
+‘<svg width="80" height="80"><circle cx="40" cy="40" r="36" fill="none" stroke="#e2e8f0" stroke-width="7"/><circle cx="40" cy="40" r="36" fill="none" stroke="'+g.col+'" stroke-width="7" stroke-dasharray="226" stroke-dashoffset="'+off+'" stroke-linecap="round" transform="rotate(-90 40 40)"/></svg>’+
+‘<div class="ring-inner"><div style="font-size:18px;font-weight:800;color:#0f172a;line-height:1">’+sc+’</div><div style="font-size:8px;color:#94a3b8">/100</div></div>’+
+‘</div>’+
+‘<div>’+
+‘<div style="font-size:30px;font-weight:800;color:'+g.col+';line-height:1">’+g.g+’</div>’+
+‘<div style="font-size:13px;font-weight:700;color:#334155;margin-top:3px">’+g.lbl+’</div>’+
+‘<div style="margin-top:8px;font-size:12px;line-height:2">’+
+‘<span style="color:#059669;font-weight:700">✓ ‘+pc+’  </span>’+
+‘<span style="color:#d97706;font-weight:700">⚠ ‘+wc+’  </span>’+
+‘<span style="color:#dc2626;font-weight:700">✕ ‘+fc+’</span>’+
+(skc>0 ? ’ <span style="color:#94a3b8;font-size:10px">— ‘+skc+’ unverifiable</span>’ : ‘’)+
+‘</div>’+
+‘</div>’+
+‘</div>’;
+}
+
+var rows = CHECKS.map(function(c,i) {
+var r=res[c.id], st=r?r.s:‘skip’;
+var detail=r&&r.d?r.d:(scanning&&!r?‘Pending…’:’—’);
+var detCol=st===‘skip’?’#94a3b8’:’#475569’;
+var ns=(st===‘skip’&&!scanning)?’<span class="nstag">NOT SCORED</span>’:’’;
+var arr=(r&&!scanning)?’<div style="color:#cbd5e1;font-size:16px;margin-left:2px">›</div>’:’’;
+return ‘<div class="chkrow" onclick="openModal(\''+c.id+'\')" style="'+(i===CHECKS.length-1?'border-bottom:none':'')+'">’+
+dotEl(st)+
+‘<div style="flex:1;min-width:0">’+
+‘<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">’+
+‘<span style="font-size:13px;font-weight:700;color:#0f172a">’+c.label+’</span>’+ns+
+‘</div>’+
+(scanning&&!r ? ‘<div class="shimmer" style="height:9px;width:55%;margin-top:5px"></div>’
+: ‘<div style="font-size:11px;color:'+detCol+';margin-top:3px;line-height:1.5">’+esc(detail)+’</div>’)+
+‘<div style="font-size:10px;color:#94a3b8;margin-top:2px">’+c.cat+’ · ‘+(st===‘skip’?‘excluded’:c.w+‘pts’)+’</div>’+
+‘</div>’+arr+
+‘</div>’;
+}).join(’’);
+
+var fails = CHECKS.filter(function(c){return res[c.id]&&res[c.id].s===‘fail’;}).sort(function(a,b){return b.w-a.w;}).slice(0,4);
+var priority = (!scanning&&fails.length) ?
+‘<div style="margin-bottom:14px">’+
+‘<div class="slabel">Priority Actions</div>’+
+‘<div class="prio-box">’+
+fails.map(function(c,i){
+return ‘<div style="display:flex;gap:10px;margin-bottom:'+(i<fails.length-1?'12px':'0')+'">’+
+‘<div class="prio-num">’+(i+1)+’</div>’+
+‘<div><div style="font-size:12px;font-weight:700;color:#dc2626">’+c.label+’</div>’+
+‘<div style="font-size:11px;color:#475569;margin-top:3px;line-height:1.5">’+esc(res[c.id].d)+’</div></div>’+
+‘</div>’;
+}).join(’’)+
+‘</div>’+
+‘</div>’ : ‘’;
+
+return ‘<div class="hdr">’+
+‘<button class="back-btn" onclick="goHome()">←</button>’+
+‘<div style="flex:1;min-width:0">’+
+‘<div style="font-size:14px;font-weight:700;color:#f8fafc;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">’+esc(dom)+’</div>’+
+‘<div style="font-size:10px;color:#64748b">’+(scanning?‘Live scan in progress…’:sc!==null?‘Score ‘+sc+’/100 · ‘+g.lbl:‘Scan complete’)+’</div>’+
+‘</div>’+
+‘<span class="live-badge"><span class="live-dot"></span>LIVE</span>’+
+‘</div>’+
+‘<div style="flex:1;overflow-y:auto;padding:14px">’+
+topCard+
+‘<div class="slabel">Security Checks’+(scanning?’’:’ · tap for detail’)+’</div>’+
+‘<div class="card" style="padding:0;overflow:hidden;margin-bottom:14px">’+rows+’</div>’+
+priority+
+‘<div style="height:10px"></div>’+
+‘</div>’;
+}
+
+function renderHistory() {
+return ‘<div class="hdr">’+
+‘<div class="logo-dot"></div>’+
+‘<div style="flex:1"><div style="font-size:14px;font-weight:800;color:#f8fafc">Scan History</div></div>’+
+(ST.history.length ? ‘<button onclick="clearHist()" style="background:rgba(220,38,38,.2);border:1.5px solid rgba(220,38,38,.4);color:#fca5a5;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Clear</button>’ : ‘’)+
+‘</div>’+
+‘<div style="flex:1;overflow-y:auto;padding:14px">’+
+(!ST.history.length ?
+‘<div style="text-align:center;padding:60px 0;color:#94a3b8"><div style="font-size:32px;margin-bottom:8px">🔍</div><div style="font-size:14px;font-weight:700;color:#334155">No scans yet</div></div>’ :
+ST.history.map(function(r){
+return ‘<div class="hist-row" onclick="loadHist(\''+esc(r.domain)+'\')">’+
+‘<div style="width:40px;height:40px;border-radius:10px;background:'+r.gradeCol+';color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;flex-shrink:0">’+r.grade+’</div>’+
+‘<div style="flex:1;min-width:0">’+
+‘<div style="font-size:13px;font-weight:800;color:#0f172a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">’+esc(r.domain)+’</div>’+
+‘<div style="font-size:11px;color:#64748b">’+r.gradeLbl+’ · ‘+(r.score!==null?r.score+’/100’:’—’)+’</div>’+
+‘</div>’+
+‘<div style="font-size:10px;color:#94a3b8;text-align:right">’+esc(r.ts||’’)+’</div>’+
+‘</div>’;
+}).join(’’))+
+‘</div>’;
+}
+
+function renderModal() {
+if (!ST.modal||!ST.results[ST.modal]) return ‘’;
+var c = CHECKS.find(function(x){return x.id===ST.modal;});
+var r = ST.results[ST.modal];
+var lblM={pass:‘PASSING’,warn:‘WARNING’,fail:‘FAILING’,skip:‘NOT SCORED’};
+var colM={pass:’#059669’,warn:’#d97706’,fail:’#dc2626’,skip:’#94a3b8’};
+var lbl=lblM[r.s]||r.s, col=colM[r.s]||’#94a3b8’;
+return ‘<div class="modal-bg" onclick="closeModal()">’+
+‘<div class="modal-box" onclick="event.stopPropagation()">’+
+‘<div class="modal-handle"></div>’+
+‘<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">’+dotEl(r.s)+
+‘<div style="font-size:16px;font-weight:800;color:#0f172a">’+c.label+’</div>’+
+‘</div>’+
+‘<div style="margin-bottom:16px">’+
+‘<span style="display:inline-block;padding:4px 12px;border-radius:20px;background:'+col+'15;color:'+col+';font-size:11px;font-weight:700;margin-right:6px">’+lbl+’</span>’+
+‘<span style="font-size:11px;color:#94a3b8">’+c.cat+’ · ‘+c.w+’ pts</span>’+
+‘</div>’+
+‘<div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:14px;font-size:13px;color:#334155;line-height:1.7;margin-bottom:20px">’+esc(r.d)+’</div>’+
+‘<button onclick="closeModal()" style="width:100%;padding:15px;background:#0f172a;border:none;border-radius:12px;color:#fff;font-weight:800;font-size:15px;cursor:pointer;font-family:inherit">Close</button>’+
+‘</div>’+
+‘</div>’;
+}
+
+function render() {
+var s = ST.screen;
+document.getElementById(‘screen’).innerHTML = s===‘home’?renderHome():s===‘scan’?renderScan():renderHistory();
+document.getElementById(‘nav’).innerHTML = renderNav();
+document.getElementById(‘modalroot’).innerHTML = ST.modal?renderModal():’’;
+}
+
+function updateBtn(){var b=document.getElementById(‘gobtn’);if(b)b.disabled=!ST.input.trim();}
+function doScan(){if(!ST.input.trim()||ST.scanning)return;runScan(toDom(ST.input.trim()));}
+function quickScan(q){if(ST.scanning)return;ST.input=q;runScan(toDom(q));}
+function goHome(){set({screen:‘home’,modal:null});}
+function goScan(){if(ST.domain)set({screen:‘scan’,modal:null});}
+function goHist(){set({screen:‘history’,modal:null});}
+function openModal(id){if(ST.results[id]&&!ST.scanning)set({modal:id});}
+function closeModal(){set({modal:null});}
+function clearHist(){set({history:[]});}
+function loadHist(dom){
+var r = ST.history.find(function(h){return h.domain===dom;});
+if(r) set({screen:‘scan’,domain:r.domain,results:r.results,scanning:false,progress:100,msg:‘Loaded from history’,modal:null});
+}
+
+render();
+</script>
+
+</body>
+</html>
